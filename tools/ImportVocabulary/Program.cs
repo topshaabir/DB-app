@@ -4,6 +4,14 @@ using Fluffy.Api.Data;
 using Fluffy.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
+var initialize = args.Length == 3 && args[0] == "--initialize";
+if (initialize)
+{
+    if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")))
+        throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection before initializing a hosted database.");
+    args = args.Skip(1).ToArray();
+}
+
 if (args.Length == 2 && args[0] == "--refresh-tests")
 {
     await RefreshTests.RunAsync(args[1]);
@@ -33,9 +41,11 @@ foreach (var rawLine in File.ReadLines(args[0]))
 if (sections.Count == 0) throw new InvalidDataException("No chapters found.");
 
 using var settings = JsonDocument.Parse(File.ReadAllText(args[1]));
-var connection = settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
+var connection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
 var options = new DbContextOptionsBuilder<FluffyDbContext>().UseSqlServer(connection).Options;
 await using var db = new FluffyDbContext(options);
+if (initialize) await db.Database.MigrateAsync();
 await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 var nextOrder = (await db.Chapters.MaxAsync(x => (int?)x.OrderIndex) ?? 0) + 1;
 var added = 0;
@@ -83,3 +93,4 @@ foreach (var section in sections)
 }
 await transaction.CommitAsync();
 Console.WriteLine($"Committed: {added} added, {sections.Sum(x => x.Words.Count)} verified.");
+if (initialize) await RefreshTests.RunAsync(args[1]);

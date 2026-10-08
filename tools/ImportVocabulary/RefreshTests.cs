@@ -10,7 +10,8 @@ internal static class RefreshTests
     public static async Task RunAsync(string settingsPath)
     {
         using var settings = JsonDocument.Parse(File.ReadAllText(settingsPath));
-        var connection = settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
+        var connection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? settings.RootElement.GetProperty("ConnectionStrings").GetProperty("DefaultConnection").GetString();
         await using var db = new FluffyDbContext(new DbContextOptionsBuilder<FluffyDbContext>().UseSqlServer(connection).Options);
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
         var traveling = await db.Chapters.Where(x => x.Title == "Traveling" || x.Title == "Travelling").ToListAsync();

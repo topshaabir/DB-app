@@ -6,6 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' was not found.");
+if (!builder.Environment.IsDevelopment()
+    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")))
+{
+    throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection for the hosted database.");
+}
+var clientOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173", "https://localhost:5173"];
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -20,9 +27,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ClientApp", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173")
+            .WithOrigins(clientOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -35,11 +40,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && builder.Configuration.GetValue("HttpsRedirection:Enabled", true))
 {
     app.UseHttpsRedirection();
 }
 app.UseCors("ClientApp");
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
