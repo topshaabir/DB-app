@@ -2,6 +2,7 @@ using Fluffy.Api.Data;
 using Fluffy.Api.Models;
 using Fluffy.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Fluffy.ImportVocabulary;
 
 static void Check(bool condition, string message)
 {
@@ -39,6 +40,26 @@ Check(limited.Count == 2 && limited.Any(option => option.Id == 11), "Small topic
 Check(TopicNaming.DisplayTitle("Vocabulary", "Food") == "Food", "Generic topic title not resolved.");
 Check(TopicNaming.DisplayTitle("Cooking verbs", "Food") == "Cooking verbs", "Named topic was changed.");
 Console.WriteLine("PASS: same-topic choices, synonyms, duplicates, small topics, stable scoring IDs and topic titles.");
+
+var legacyContent = VocabularyContentReader.Read(["Chapter-1. Food — Еда", "apple — яблоко"]);
+Check(legacyContent.Single().Topics.Single().Title == "Vocabulary", "Legacy content format changed.");
+var nestedContent = VocabularyContentReader.Read(["Chapter-1. Transport — Транспорт", "Topic-1. Vehicles — Көліктер", "coach — автобус", "Topic-2. Road — Жол", "coach — другой перевод"]);
+Check(nestedContent.Single().Topics.Count == 2 && nestedContent.Single().Topics.All(topic => topic.Words.Count == 1), "Named topics were merged.");
+try
+{
+    VocabularyContentReader.Read(["Chapter-1. Food — Еда", "apple — яблоко", "APPLE — яблоко"]);
+    throw new Exception("Duplicate word was accepted.");
+}
+catch (InvalidDataException) { }
+var contentArgument = Array.IndexOf(args, "--content");
+if (contentArgument >= 0)
+{
+    var content = VocabularyContentReader.Read(File.ReadLines(args[contentArgument + 1]));
+    Check(content.Count == 6 && content.Sum(chapter => chapter.Topics.Sum(topic => topic.Words.Count)) == 189, "Content is incomplete.");
+    Check(content.Single(chapter => chapter.Title == "Transport").Topics.Select(topic => topic.Words.Count).SequenceEqual(new[] { 10, 28, 6 }), "Transport grouping is incorrect.");
+    Check(content.Single(chapter => chapter.Title == "Dependent prepositions").Topics.Select(topic => topic.Words.Count).SequenceEqual(new[] { 16, 19 }), "Preposition grouping is incorrect.");
+}
+Console.WriteLine("PASS: legacy format, named subtopics, duplicate validation and supplied content counts.");
 
 if (!args.Contains("--database")) return;
 await using var db = new FluffyDbContext(new DbContextOptionsBuilder<FluffyDbContext>()

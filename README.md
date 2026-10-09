@@ -152,6 +152,18 @@ To add a topic, add a `Topic` row with `ChapterId`, `Title`, `Description`, `Ord
 
 To add vocabulary, add a `Vocabulary` row with `TopicId`, `Word`, `Translation`, `ExampleSentence`, and optional `PartOfSpeech`.
 
+The bundled `es-russian.txt` also supports named subtopics:
+
+```text
+Chapter-5. Transport — Транспорт
+Topic-1. Public transport and vehicles — Қоғамдық көлік және көлік құралдары
+coach — туристический автобус / междугородний автобус
+Topic-2. On the road — Жолда
+seat belt — ремень безопасности
+```
+
+Words without a `Topic-` heading keep the original single vocabulary-topic format. To update an existing local database and generate the new tests, run `dotnet run --project tools/ImportVocabulary/ImportVocabulary.csproj -- --sync es-russian.txt server/appsettings.json`. The import is additive and safe to repeat; it does not remove user results or recreate existing word/question IDs. For the hosted database, use the one-time `SYNC_VOCABULARY` option in `deploy/README.md`.
+
 To add test questions, add a `TestQuestion` row with `TopicId`, `QuestionText`, `QuestionType`, `CreatedAt`, and `IsActive`, then add related `TestAnswer` rows. Mark the correct answer with `IsCorrect = true`.
 
 For development seed data, update `Seed` in `FluffyDbContext`, add a new migration, then run `database update`.

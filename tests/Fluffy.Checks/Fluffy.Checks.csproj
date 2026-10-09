@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../server/Fluffy.Api.csproj" />
+    <ProjectReference Include="../../tools/ImportVocabulary/ImportVocabulary.csproj" />
   </ItemGroup>
 </Project>

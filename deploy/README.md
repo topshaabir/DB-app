@@ -24,6 +24,7 @@ Set these runtime environment variables before deploying:
 | `ConnectionStrings__DefaultConnection` | Azure SQL ADO.NET connection string |
 | `Cors__AllowedOrigins__0` | `https://fluffydb.netlify.app` (no trailing slash); use additional indexed entries for other frontend domains |
 | `INITIALIZE_DATABASE` | `true` for the first deployment; change to `false` once initialization succeeds |
+| `SYNC_VOCABULARY` | `true` for a one-time vocabulary update on an existing database; return to `false` after the update |
 
 Connection string template (replace placeholders in Render, not in Git):
 
@@ -31,7 +32,9 @@ Connection string template (replace placeholders in Render, not in Git):
 Server=tcp:YOUR_SERVER.database.windows.net,1433;Database=FluffyDb;User ID=YOUR_LOGIN;Password=YOUR_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;
 ```
 
-Initialization applies EF migrations, imports the 110 Russian vocabulary entries, and creates translation questions. It does not copy local users or their test results. It stops the container if initialization fails. Do not leave initialization enabled for routine deployments: re-importing updates translations from the file.
+Initialization applies EF migrations, imports the Russian vocabulary entries, and creates translation questions. It does not copy local users or their test results. It stops the container if initialization fails. Do not leave initialization enabled for routine deployments: re-importing updates translations from the file.
+
+For an existing database, set `SYNC_VOCABULARY=true` and keep `INITIALIZE_DATABASE=false` for one deployment. This imports the bundled content and generates its tests without running schema migrations. Once the logs confirm success, set `SYNC_VOCABULARY=false` to avoid repeating the import on future starts. Importing again is safe: existing chapters, topics and words are matched by name and reused; test answer IDs are preserved.
 
 ## Netlify
 
