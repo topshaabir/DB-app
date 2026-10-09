@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '../components/Button';
 import { ProfileCard } from '../components/ProfileCard';
 import { StateMessage } from '../components/StateMessage';
+import { LoadingState } from '../components/LoadingState';
 import { api } from '../services/api';
 import type { ProfileStats } from '../types/api';
 
@@ -48,6 +49,7 @@ export function ProfilePage() {
         </Button>
       </section>
 
+      {loading ? <LoadingState /> : null}
       {error ? <StateMessage title="Profile message" message={error} /> : null}
       {profile ? (
         <>

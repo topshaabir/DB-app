@@ -11,22 +11,47 @@ import type {
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const RETRYABLE_STATUSES = new Set([502, 503, 504]);
+const RETRY_DELAYS_MS = [1500, 3000, 6000, 10000];
+
+const sleep = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
-    },
-    ...options
-  });
+  const method = options?.method?.toUpperCase() ?? 'GET';
+  const canRetry = method === 'GET';
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${path}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers
+        },
+        ...options
+      });
+
+      if (response.ok) {
+        return response.json() as Promise<T>;
+      }
+
+      const message = await response.text();
+      lastError = new Error(message || `Request failed with status ${response.status}`);
+
+      if (!canRetry || !RETRYABLE_STATUSES.has(response.status) || attempt === RETRY_DELAYS_MS.length) {
+        throw lastError;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Network request failed');
+      if (!canRetry || attempt === RETRY_DELAYS_MS.length) {
+        throw lastError;
+      }
+    }
+
+    await sleep(RETRY_DELAYS_MS[attempt]);
   }
 
-  return response.json() as Promise<T>;
+  throw lastError ?? new Error('Request failed');
 }
 
 export const api = {

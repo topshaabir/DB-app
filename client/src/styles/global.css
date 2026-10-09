@@ -402,6 +402,38 @@ select {
   margin-top: 18px;
 }
 
+.test-submit {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 16px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.loading-spinner {
+  flex: 0 0 24px;
+  color: var(--accent);
+  animation: loading-spin 1s linear infinite;
+}
+
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+  }
+}
+
 .question-card {
   display: grid;
   gap: 14px;

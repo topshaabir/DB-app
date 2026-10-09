@@ -1,6 +1,7 @@
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { StateMessage } from '../components/StateMessage';
+import { LoadingState } from '../components/LoadingState';
 import { useAsync } from '../hooks/useAsync';
 import { api } from '../services/api';
 
@@ -10,7 +11,7 @@ export function TopicDetailPage() {
   const { data: topic, loading, error } = useAsync(() => api.getTopic(topicId), [topicId]);
 
   if (loading) {
-    return <StateMessage title="Loading topic..." />;
+    return <LoadingState />;
   }
 
   if (error || !topic) {

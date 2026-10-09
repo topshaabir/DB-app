@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '../components/Button';
 import { Dropdown } from '../components/Dropdown';
+import { LoadingState } from '../components/LoadingState';
 import { ScoreCard } from '../components/ScoreCard';
 import { StateMessage } from '../components/StateMessage';
 import { TestQuestionCard } from '../components/TestQuestionCard';
@@ -58,6 +59,7 @@ export function TestPage() {
   }
 
   async function submitTest() {
+    if (!canSubmit || submitting || result) return;
     const scope = decodeScope(selectedScope);
     setSubmitting(true);
     setFlowError(null);
@@ -93,7 +95,7 @@ export function TestPage() {
           <span>Enter your name</span>
           <input maxLength={120} disabled={loadingQuestions || submitting} value={userName} onChange={event => setUserName(event.target.value)} placeholder="Your name" />
         </label>
-        <Dropdown label="Choose test scope" value={selectedScope} disabled={loadingQuestions || submitting} onChange={event => { setSelectedScope(event.target.value); setQuestions([]); setAnswers({}); setResult(null); setFlowError(null); }}>
+        <Dropdown label="Choose test scope" value={selectedScope} disabled={loading || loadingQuestions || submitting} onChange={event => { setSelectedScope(event.target.value); setQuestions([]); setAnswers({}); setResult(null); setFlowError(null); }}>
           {scopes?.map(scope => (
             <option key={encodeScope(scope)} value={encodeScope(scope)}>
               {scope.label}
@@ -105,6 +107,7 @@ export function TestPage() {
         </Button>
       </section>
 
+      {loading || loadingQuestions ? <LoadingState /> : null}
       {error ? <StateMessage title="Could not load scopes" message={error} /> : null}
       {flowError ? <StateMessage title="Test message" message={flowError} /> : null}
 
@@ -117,9 +120,6 @@ export function TestPage() {
               </span>
               <h2>Questions</h2>
             </div>
-            <Button type="button" onClick={submitTest} disabled={!canSubmit || submitting || !!result}>
-              {submitting ? 'Saving...' : 'Submit'}
-            </Button>
           </div>
           <div className="question-stack">
             {questions.map(question => (
@@ -132,6 +132,12 @@ export function TestPage() {
               />
             ))}
           </div>
+          <div className="test-submit">
+            <Button type="button" onClick={submitTest} disabled={!canSubmit || submitting || !!result}>
+              {submitting ? 'Saving...' : 'Submit'}
+            </Button>
+          </div>
+          {submitting ? <LoadingState message="Подождите, результат сохраняется" /> : null}
         </section>
       ) : null}
 

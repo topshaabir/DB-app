@@ -12,7 +12,7 @@ if (!builder.Environment.IsDevelopment()
     throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection for the hosted database.");
 }
 var clientOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? ["http://localhost:5173", "https://localhost:5173"];
+    ?? [];
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -27,9 +27,26 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ClientApp", policy =>
     {
         policy
-            .WithOrigins(clientOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
+
+        if (clientOrigins.Length > 0)
+        {
+            policy.WithOrigins(clientOrigins);
+        }
+        else
+        {
+            policy.SetIsOriginAllowed(origin =>
+            {
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return uri.Host is "localhost" or "127.0.0.1"
+                    || uri.Host.EndsWith(".netlify.app", StringComparison.OrdinalIgnoreCase);
+            });
+        }
     });
 });
 
