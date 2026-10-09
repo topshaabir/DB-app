@@ -13,6 +13,10 @@ if (!builder.Environment.IsDevelopment()
 }
 var clientOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? [];
+var allowedOrigins = clientOrigins
+    .Concat(["https://fluffydb.netlify.app", "http://localhost:5173", "https://localhost:5173", "http://127.0.0.1:5173"])
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -27,26 +31,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ClientApp", policy =>
     {
         policy
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
-
-        if (clientOrigins.Length > 0)
-        {
-            policy.WithOrigins(clientOrigins);
-        }
-        else
-        {
-            policy.SetIsOriginAllowed(origin =>
-            {
-                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
-                {
-                    return false;
-                }
-
-                return uri.Host is "localhost" or "127.0.0.1"
-                    || uri.Host.EndsWith(".netlify.app", StringComparison.OrdinalIgnoreCase);
-            });
-        }
     });
 });
 

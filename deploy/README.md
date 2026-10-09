@@ -22,7 +22,7 @@ Set these runtime environment variables before deploying:
 | Name | Value |
 | --- | --- |
 | `ConnectionStrings__DefaultConnection` | Azure SQL ADO.NET connection string |
-| `Cors__AllowedOrigins__0` | Your exact Netlify HTTPS origin, without a trailing slash |
+| `Cors__AllowedOrigins__0` | `https://fluffydb.netlify.app` (no trailing slash); use additional indexed entries for other frontend domains |
 | `INITIALIZE_DATABASE` | `true` for the first deployment; change to `false` once initialization succeeds |
 
 Connection string template (replace placeholders in Render, not in Git):
@@ -42,5 +42,7 @@ VITE_API_BASE_URL=https://YOUR_SERVICE.onrender.com/api
 ```
 
 Check `/health`, `/api/chapters`, and `/api/tests/questions?scopeType=all` on the Render URL. Then verify loading and submitting a test from the Netlify site.
+
+The API always permits `https://fluffydb.netlify.app` alongside any configured origins. After CORS changes, redeploy the Render API as well as the Netlify client. A successful `/health` response alone does not confirm browser access: API responses must include `Access-Control-Allow-Origin: https://fluffydb.netlify.app` when requested from that origin.
 
 Free Render services sleep after inactivity. The first request can be slow. The Azure database can pause when its monthly allowance is exhausted.

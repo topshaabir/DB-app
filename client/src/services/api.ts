@@ -19,33 +19,33 @@ const sleep = (ms: number) => new Promise(resolve => window.setTimeout(resolve, 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const method = options?.method?.toUpperCase() ?? 'GET';
   const canRetry = method === 'GET';
+  const headers = new Headers(options?.headers);
+  if (options?.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    let response: Response;
     try {
-      const response = await fetch(`${API_BASE_URL}${path}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers
-        },
-        ...options
-      });
-
-      if (response.ok) {
-        return response.json() as Promise<T>;
-      }
-
-      const message = await response.text();
-      lastError = new Error(message || `Request failed with status ${response.status}`);
-
-      if (!canRetry || !RETRYABLE_STATUSES.has(response.status) || attempt === RETRY_DELAYS_MS.length) {
-        throw lastError;
-      }
+      response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Network request failed');
       if (!canRetry || attempt === RETRY_DELAYS_MS.length) {
         throw lastError;
       }
+      await sleep(RETRY_DELAYS_MS[attempt]);
+      continue;
+    }
+
+    if (response.ok) {
+      return response.json() as Promise<T>;
+    }
+
+    const message = await response.text();
+    lastError = new Error(message || `Request failed with status ${response.status}`);
+    if (!canRetry || !RETRYABLE_STATUSES.has(response.status) || attempt === RETRY_DELAYS_MS.length) {
+      throw lastError;
     }
 
     await sleep(RETRY_DELAYS_MS[attempt]);
