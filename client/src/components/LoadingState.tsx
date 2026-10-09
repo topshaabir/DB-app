@@ -1,10 +1,42 @@
 import { LoaderCircle } from 'lucide-react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 type LoadingStateProps = {
   message?: string;
+  fullScreen?: boolean;
 };
 
-export function LoadingState({ message = 'Подождите, сервер загружается' }: LoadingStateProps) {
+export function LoadingState({ message = 'Подождите, сервер загружается', fullScreen = true }: LoadingStateProps) {
+  useEffect(() => {
+    if (!fullScreen) return;
+    const root = document.getElementById('root');
+    const previousInert = root?.inert ?? false;
+    const previousOverflow = document.body.style.overflow;
+    if (root) root.inert = true;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      if (root) root.inert = previousInert;
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [fullScreen]);
+
+  if (fullScreen) {
+    return createPortal(
+      <div className="loading-screen" role="status" aria-live="polite">
+        <div className="loading-screen-content">
+          <img className="loading-mascot" src="/images/fluffy-loading.png" alt="" width={240} height={240} />
+          <strong className="loading-screen-brand">Fluffy</strong>
+          <h1>{message}</h1>
+          <div className="loading-screen-track" aria-hidden="true">
+            <div className="loading-screen-progress" />
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
   return (
     <div className="loading-state" role="status" aria-live="polite">
       <LoaderCircle className="loading-spinner" size={24} aria-hidden="true" />

@@ -62,14 +62,15 @@ select {
 }
 
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: var(--accent);
-  color: #ffffff;
-  font-weight: 900;
+  display: block;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.mobile-brand {
+  display: none;
 }
 
 .brand strong,
@@ -424,12 +425,83 @@ select {
   animation: loading-spin 1s linear infinite;
 }
 
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 32px 24px;
+  background: #ffffff;
+}
+
+.loading-screen-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 380px);
+  text-align: center;
+}
+
+.loading-mascot {
+  display: block;
+  width: min(240px, 65vw);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin-bottom: 28px;
+  animation: loading-bob 2s ease-in-out infinite;
+}
+
+.loading-screen-brand {
+  margin-bottom: 10px;
+  color: var(--accent-dark);
+  font-size: 16px;
+}
+
+.loading-screen h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 26px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.loading-screen-track {
+  width: min(100%, 270px);
+  height: 8px;
+  overflow: hidden;
+  margin-top: 28px;
+  border-radius: 4px;
+  background: #fff0e5;
+}
+
+.loading-screen-progress {
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: loading-progress 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-bob {
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes loading-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(350%); }
+}
+
 @keyframes loading-spin {
   to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-spinner {
+  .loading-spinner,
+  .loading-mascot,
+  .loading-screen-progress {
     animation: none;
   }
 }
@@ -597,6 +669,12 @@ select {
 
   .sidebar {
     display: none;
+  }
+
+  .mobile-brand {
+    display: flex;
+    width: fit-content;
+    margin-bottom: 20px;
   }
 
   .main-content {

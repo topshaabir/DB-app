@@ -1,5 +1,5 @@
 import { BookOpen, ClipboardCheck, Trophy, UserRound } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 
 const navItems = [
   { to: '/topics', label: 'Topics', icon: BookOpen },
@@ -12,13 +12,13 @@ export function AppLayout() {
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="Main navigation">
-        <div className="brand">
-          <div className="brand-mark">F</div>
+        <Link to="/topics" className="brand" aria-label="Fluffy home">
+          <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
           <div>
             <strong>Fluffy</strong>
             <span>English learning</span>
           </div>
-        </div>
+        </Link>
         <nav className="nav-list">
           {navItems.map(item => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
@@ -30,6 +30,10 @@ export function AppLayout() {
       </aside>
 
       <main className="main-content">
+        <Link to="/topics" className="brand mobile-brand" aria-label="Fluffy home">
+          <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
+          <strong>Fluffy</strong>
+        </Link>
         <Outlet />
       </main>
 

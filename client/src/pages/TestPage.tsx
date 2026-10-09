@@ -137,7 +137,7 @@ export function TestPage() {
               {submitting ? 'Saving...' : 'Submit'}
             </Button>
           </div>
-          {submitting ? <LoadingState message="Подождите, результат сохраняется" /> : null}
+          {submitting ? <LoadingState message="Подождите, результат сохраняется" fullScreen={false} /> : null}
         </section>
       ) : null}
 
