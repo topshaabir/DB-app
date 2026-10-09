@@ -25,6 +25,7 @@ builder.Services.AddDbContext<FluffyDbContext>(options =>
 builder.Services.AddScoped<LearningService>();
 builder.Services.AddScoped<TestService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<LeaderboardService>();
 
 builder.Services.AddCors(options =>
 {

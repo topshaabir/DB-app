@@ -79,3 +79,18 @@ export type SubmitTestRequest = {
     answerId: number;
   }>;
 };
+
+export type LeaderboardEntry = {
+  rank: number;
+  userName: string;
+  points: number;
+  accuracy: number;
+  completedTests: number;
+  lastCompletedAt: string;
+};
+
+export type Leaderboard = {
+  totalPlayers: number;
+  totalTests: number;
+  entries: LeaderboardEntry[];
+};

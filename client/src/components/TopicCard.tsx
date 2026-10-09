@@ -1,22 +1,24 @@
-import { Bookmark, Plane } from 'lucide-react';
+import { BookOpen, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { TopicSummary } from '../types/api';
+import { topicTitle } from '../services/topicTitle';
 
 type TopicCardProps = {
   topic: TopicSummary;
+  description?: string | null;
 };
 
-export function TopicCard({ topic }: TopicCardProps) {
+export function TopicCard({ topic, description }: TopicCardProps) {
   return (
     <Link className="topic-card" to={`/topics/${topic.id}`}>
       <div className="topic-icon" aria-hidden="true">
-        <Plane size={24} />
+        <BookOpen size={24} />
       </div>
       <div className="topic-card-body">
-        <strong>{topic.title}</strong>
-        <span>{topic.description}</span>
+        <strong>{topicTitle(topic)}</strong>
+        {description || topic.description ? <span>{description || topic.description}</span> : null}
       </div>
-      <Bookmark className="topic-bookmark" size={21} aria-hidden="true" />
+      <ChevronRight className="topic-bookmark" size={21} aria-hidden="true" />
     </Link>
   );
 }

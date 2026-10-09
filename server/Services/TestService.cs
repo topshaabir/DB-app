@@ -9,25 +9,28 @@ public sealed class TestService(FluffyDbContext db)
 {
     public async Task<IReadOnlyList<TestQuestionDto>> GetQuestionsAsync(string scopeType, int? scopeId)
     {
-        var query = BuildQuestionQuery(scopeType, scopeId)
+        var questions = await BuildQuestionQuery(scopeType, scopeId)
             .AsNoTracking()
+            .Include(question => question.Answers)
+            .Include(question => question.Topic!).ThenInclude(topic => topic.Chapter)
             .Where(question => question.IsActive && question.Topic!.IsActive)
             .OrderBy(question => question.Topic!.Chapter!.OrderIndex)
             .ThenBy(question => question.Topic!.OrderIndex)
-            .ThenBy(question => question.Id);
+            .ThenBy(question => question.Id)
+            .ToListAsync();
 
-        return await query
+        var topicIds = questions.Select(question => question.TopicId).Distinct().ToList();
+        var vocabulary = await db.Vocabulary.AsNoTracking().Where(word => topicIds.Contains(word.TopicId)).ToListAsync();
+        var vocabularyByTopic = vocabulary.ToLookup(word => word.TopicId);
+        return questions
             .Select(question => new TestQuestionDto(
                 question.Id,
                 question.TopicId,
-                question.Topic!.Title,
+                TopicNaming.DisplayTitle(question.Topic!.Title, question.Topic.Chapter!.Title),
                 question.QuestionText,
                 question.QuestionType,
-                question.Answers
-                    .OrderBy(answer => answer.Id)
-                    .Select(answer => new AnswerOptionDto(answer.Id, answer.AnswerText))
-                    .ToList()))
-            .ToListAsync();
+                TranslationChoices.ForQuestion(question, vocabularyByTopic[question.TopicId])))
+            .ToList();
     }
 
     public async Task<TestResultDto?> SubmitAsync(SubmitTestRequestDto request)
@@ -155,7 +158,7 @@ public sealed class TestService(FluffyDbContext db)
         {
             return await db.Topics
                 .Where(topic => topic.Id == scopeId.Value)
-                .Select(topic => topic.Title)
+                .Select(topic => TopicNaming.DisplayTitle(topic.Title, topic.Chapter!.Title))
                 .SingleOrDefaultAsync() ?? "Topic";
         }
 

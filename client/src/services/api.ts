@@ -1,5 +1,6 @@
 import type {
   ChapterSummary,
+  Leaderboard,
   ProfileStats,
   SubmitTestRequest,
   TestQuestion,
@@ -55,6 +56,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getLeaderboard: (period: string, topicId?: number) => {
+    const params = new URLSearchParams({ period });
+    if (topicId) params.set('topicId', String(topicId));
+    return request<Leaderboard>(`/leaderboard?${params.toString()}`);
+  },
   getChapters: () => request<ChapterSummary[]>('/chapters'),
   getChapter: (id: number) => request<ChapterSummary>(`/chapters/${id}`),
   getTopics: () => request<TopicSummary[]>('/topics'),

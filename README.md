@@ -135,11 +135,16 @@ Keep both terminals running while using the site.
 - `GET /api/tests/questions?scopeType=chapter&scopeId=1`
 - `GET /api/tests/questions?scopeType=topic&scopeId=1`
 - `POST /api/tests/submit`
-- `POST /api/test-results`
+- `GET /api/leaderboard?period=all`
+- `GET /api/leaderboard?period=week&topicId=5`
 - `GET /api/test-results/{name}`
 - `GET /api/profile/{name}`
 
 ## Add Learning Content
+
+Translation tests choose distinct distractors from the same topic and shuffle the answer order. Existing imported questions use corrected choices without reinitializing the database; their answer IDs remain stable for scoring. A generic `Vocabulary` topic is displayed using its chapter name and opens directly from the topic list. Named subtopics remain grouped under their chapters.
+
+Leaderboard points are the total number of correctly answered questions across completed tests. Equal points are ordered by weighted accuracy, then name. The leaderboard shows the top 100 learners, supports all-time/last-seven-day periods and topic filtering, and combines names ignoring case and surrounding whitespace. Names are not authenticated accounts yet. Results can only be created through server-scored `POST /api/tests/submit`; the old client-supplied score endpoint has been removed.
 
 To add a chapter, add a `Chapter` row with `Title`, `Description`, and `OrderIndex`.
 
@@ -181,5 +186,4 @@ npm run build
 - Add authentication and persistent user accounts.
 - Add admin screens for chapters, topics, vocabulary, and questions.
 - Add richer exercise types.
-- Implement the leaderboard from `TestResults`.
 - Add automated backend tests and frontend component tests.

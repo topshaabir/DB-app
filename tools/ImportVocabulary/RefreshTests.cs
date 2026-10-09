@@ -23,12 +23,20 @@ internal static class RefreshTests
         var added = 0;
         foreach (var word in words)
         {
-            var text = $"Выберите перевод: {word.Word}";
-            if (await db.TestQuestions.AnyAsync(x => x.TopicId == word.TopicId && x.QuestionText == text)) continue;
-            // Use other chapters for distractors to avoid near-synonyms within a vocabulary group.
-            var wrong = words.Where(x => x.Topic!.ChapterId != word.Topic!.ChapterId && x.Translation != word.Translation)
-                .Select(x => x.Translation).Distinct().OrderBy(_ => Random.Shared.Next()).Take(3).ToList();
-            if (wrong.Count != 3) throw new InvalidDataException("Not enough distinct distractors.");
+            var text = $"{TranslationChoices.QuestionPrefix}{word.Word}";
+            var existing = await db.TestQuestions.Include(x => x.Answers).SingleOrDefaultAsync(x => x.TopicId == word.TopicId && x.QuestionText == text);
+            var wrong = TranslationChoices.GetDistractors(word, words);
+            if (wrong.Count == 0) throw new InvalidDataException($"Not enough distinct translations in topic {word.TopicId}.");
+            if (existing is not null)
+            {
+                var refreshed = TranslationChoices.ForQuestion(existing, words).ToDictionary(option => option.Id);
+                foreach (var answer in existing.Answers.ToList())
+                {
+                    if (refreshed.TryGetValue(answer.Id, out var option)) answer.AnswerText = option.AnswerText;
+                    else db.TestAnswers.Remove(answer);
+                }
+                continue;
+            }
             var options = wrong.Select(x => new TestAnswer { AnswerText = x, IsCorrect = false })
                 .Append(new TestAnswer { AnswerText = word.Translation, IsCorrect = true })
                 .OrderBy(_ => Random.Shared.Next()).ToList();

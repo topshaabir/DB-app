@@ -38,7 +38,7 @@ export function AppLayout() {
       </main>
 
       <nav className="mobile-nav" aria-label="Mobile navigation">
-        {navItems.slice(0, 3).map(item => (
+        {navItems.map(item => (
           <NavLink key={item.to} to={item.to} className={({ isActive }) => `mobile-nav-item ${isActive ? 'active' : ''}`}>
             <item.icon size={21} aria-hidden="true" />
             <span>{item.label}</span>

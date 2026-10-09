@@ -1,5 +1,4 @@
 import type { ChapterSummary } from '../types/api';
-import { ProgressBar } from './ProgressBar';
 import { TopicCard } from './TopicCard';
 
 type ChapterCardProps = {
@@ -7,6 +6,9 @@ type ChapterCardProps = {
 };
 
 export function ChapterCard({ chapter }: ChapterCardProps) {
+  if (chapter.topics.length === 1 && chapter.topics[0].title.toLowerCase() === 'vocabulary') {
+    return <TopicCard topic={chapter.topics[0]} description={chapter.description} />;
+  }
   return (
     <section className="chapter-section">
       <div className="section-heading">
@@ -17,8 +19,8 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
         </div>
         <div className="chapter-count">{chapter.topics.length} topics</div>
       </div>
-      <ProgressBar value={chapter.topics.length ? 25 : 0} label="Foundation progress" />
       <div className="topic-list">
+        {chapter.topics.length === 0 ? <span className="topic-empty">Coming soon</span> : null}
         {chapter.topics.map(topic => (
           <TopicCard key={topic.id} topic={topic} />
         ))}

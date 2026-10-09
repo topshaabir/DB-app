@@ -4,6 +4,7 @@ import { StateMessage } from '../components/StateMessage';
 import { LoadingState } from '../components/LoadingState';
 import { useAsync } from '../hooks/useAsync';
 import { api } from '../services/api';
+import { topicTitle } from '../services/topicTitle';
 
 export function TopicDetailPage() {
   const { id } = useParams();
@@ -30,8 +31,8 @@ export function TopicDetailPage() {
           <BookOpen size={32} />
         </div>
         <div>
-          <span className="eyebrow">{topic.chapterTitle}</span>
-          <h1>{topic.title}</h1>
+          {topic.title.toLowerCase() !== 'vocabulary' ? <span className="eyebrow">{topic.chapterTitle}</span> : null}
+          <h1>{topicTitle(topic)}</h1>
           <p>{topic.description}</p>
         </div>
       </header>
