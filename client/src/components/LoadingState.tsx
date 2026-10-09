@@ -1,5 +1,5 @@
-import { LoaderCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { Info, LoaderCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type LoadingStateProps = {
@@ -8,6 +8,23 @@ type LoadingStateProps = {
 };
 
 export function LoadingState({ message = 'Подождите, сервер загружается', fullScreen = true }: LoadingStateProps) {
+  const [showDelayNotice, setShowDelayNotice] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowDelayNotice(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const delayNotice = showDelayNotice ? (
+    <div className="server-delay-notice" role="status" aria-live="polite">
+      <Info size={22} aria-hidden="true" />
+      <div>
+        <strong>Серверден жауап күтіп жатырмыз</strong>
+        <p>Тегін сервер белсенді болмаған кезде ұйқы режиміне өтуі мүмкін. Қайта қосылуына 50 секунд немесе одан көп уақыт кетуі мүмкін. Күте тұрыңыз.</p>
+      </div>
+    </div>
+  ) : null;
+
   useEffect(() => {
     if (!fullScreen) return;
     const root = document.getElementById('root');
@@ -31,6 +48,7 @@ export function LoadingState({ message = 'Подождите, сервер за�
           <div className="loading-screen-track" aria-hidden="true">
             <div className="loading-screen-progress" />
           </div>
+          {delayNotice}
         </div>
       </div>,
       document.body
@@ -38,9 +56,12 @@ export function LoadingState({ message = 'Подождите, сервер за�
   }
 
   return (
-    <div className="loading-state" role="status" aria-live="polite">
-      <LoaderCircle className="loading-spinner" size={24} aria-hidden="true" />
-      <span>{message}</span>
+    <div>
+      <div className="loading-state" role="status" aria-live="polite">
+        <LoaderCircle className="loading-spinner" size={24} aria-hidden="true" />
+        <span>{message}</span>
+      </div>
+      {delayNotice}
     </div>
   );
 }

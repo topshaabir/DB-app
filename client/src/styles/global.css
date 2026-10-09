@@ -500,6 +500,39 @@ select {
   animation: loading-progress 1.5s ease-in-out infinite;
 }
 
+.server-delay-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #c9e0ee;
+  border-radius: 8px;
+  background: #f1f8fc;
+  color: var(--text);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.server-delay-notice > svg {
+  flex: 0 0 22px;
+  color: #287297;
+}
+
+.server-delay-notice strong {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.server-delay-notice p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 @keyframes loading-bob {
   50% { transform: translateY(-8px); }
 }
