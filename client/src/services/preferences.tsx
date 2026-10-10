@@ -250,6 +250,7 @@ const dictionaries = {
 } as const;
 
 const additionalTranslations = {
+  newTest: ['Take another test', 'Пройти другой тест', 'Басқа тест тапсыру'],
   studiedTopics: ['Studied topics', 'Изученные темы', 'Өтілген тақырыптар'],
   topicsDescription: ['Review vocabulary and examples from your learning chapters.', 'Повторяйте слова и примеры из изученных разделов.', 'Өтілген бөлімдердегі сөздер мен мысалдарды қайталаңыз.'],
   topicsError: ['Could not load topics', 'Не удалось загрузить темы', 'Тақырыптарды жүктеу мүмкін болмады'],

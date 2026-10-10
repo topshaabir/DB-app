@@ -16,7 +16,7 @@ export function AppLayout() {
     <div className="app-shell">
       <aside className="sidebar" aria-label={t('mainNavigation')}>
         <Link to="/topics" className="brand" aria-label={t('home')}>
-          <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
+          <img className="brand-mark" src="/images/fluffy-logo-transparent.png" alt="" width={52} height={52} />
           <div>
             <strong>Fluffy</strong>
             <span>{t('appSubtitle')}</span>
@@ -35,7 +35,7 @@ export function AppLayout() {
       <main className="main-content">
         <div className="topbar">
           <Link to="/topics" className="brand mobile-brand" aria-label={t('home')}>
-            <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
+            <img className="brand-mark" src="/images/fluffy-logo-transparent.png" alt="" width={52} height={52} />
             <strong>Fluffy</strong>
           </Link>
           <AppControls />

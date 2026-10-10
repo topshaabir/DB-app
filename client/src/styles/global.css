@@ -1235,3 +1235,21 @@ select {
     flex: auto;
   }
 }
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.result-actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: normal;
+}
+
+@media (max-width: 600px) {
+  .result-actions .button { flex: 1 1 100%; }
+}

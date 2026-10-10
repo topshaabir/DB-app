@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Dropdown } from '../components/Dropdown';
 import { LoadingState } from '../components/LoadingState';
@@ -268,6 +268,18 @@ export function TestPage() {
     window.location.reload();
   }
 
+  function newTest() {
+    localStorage.removeItem(progressKey);
+    takeRetryMistakes();
+    setQuestions([]);
+    setAnswers({});
+    setCurrentIndex(0);
+    setResult(null);
+    setParentResultId(null);
+    setFlowError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   const activeAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
 
   return (
@@ -382,6 +394,15 @@ export function TestPage() {
             <div><span>{t('incorrectAnswers')}</span><strong>{result.totalQuestions - result.score}</strong></div>
             <div><span>{t('accuracy')}</span><strong>{result.percentage}%</strong></div>
           </div>
+          <div className="result-actions">
+            <Button type="button" onClick={newTest}>
+              <RotateCcw size={18} aria-hidden="true" />
+              {t('newTest')}
+            </Button>
+            {result.mistakes?.length ? (
+              <Button type="button" variant="secondary" onClick={retryMistakes}>{t('retryMistakes')}</Button>
+            ) : null}
+          </div>
           {result.mistakes?.length ? (
             <div className="mistake-list">
               <h2>{t('mistakes')}</h2>
@@ -394,7 +415,6 @@ export function TestPage() {
                   {mistake.explanation ? <small>{mistake.explanation}</small> : null}
                 </article>
               ))}
-              <Button type="button" onClick={retryMistakes}>{t('retryMistakes')}</Button>
             </div>
           ) : (
             <StateMessage title={t('noMistakes')} />

@@ -44,7 +44,7 @@ export function LoadingState({ message, fullScreen = true }: LoadingStateProps) 
     return createPortal(
       <div className="loading-screen" role="status" aria-live="polite">
         <div className="loading-screen-content">
-          <img className="loading-mascot" src="/images/fluffy-loading.png" alt="" width={240} height={240} />
+          <img className="loading-mascot" src="/images/fluffy-logo-transparent.png" alt="" width={240} height={240} />
           <strong className="loading-screen-brand">Fluffy</strong>
           <h1>{message ?? t('loadingServer')}</h1>
           <div className="loading-screen-track" aria-hidden="true">

@@ -60,7 +60,7 @@ export function LeaderboardPage() {
           </div>
           {data.entries.length === 0 ? (
             <div className="leaderboard-empty">
-              <img src="/images/fluffy-loading.png" alt="" width={100} height={100} />
+              <img src="/images/fluffy-logo-transparent.png" alt="" width={100} height={100} />
               <h2>{t('noResults')}</h2>
               <Link className="text-link" to="/test">{t('takeTest')}</Link>
             </div>
