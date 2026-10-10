@@ -7,7 +7,7 @@ namespace Fluffy.Api.Services;
 
 public sealed class TestService(FluffyDbContext db)
 {
-    public async Task<IReadOnlyList<TestQuestionDto>> GetQuestionsAsync(string scopeType, int? scopeId)
+    public async Task<IReadOnlyList<TestQuestionDto>> GetQuestionsAsync(string scopeType, int? scopeId, string? language = null)
     {
         var questions = await BuildQuestionQuery(scopeType, scopeId)
             .AsNoTracking()
@@ -29,7 +29,10 @@ public sealed class TestService(FluffyDbContext db)
                 TopicNaming.DisplayTitle(question.Topic!.Title, question.Topic.Chapter!.Title),
                 question.QuestionText,
                 question.QuestionType,
-                TranslationChoices.ForQuestion(question, vocabularyByTopic[question.TopicId])))
+                TranslationChoices.ForQuestion(question, vocabularyByTopic[question.TopicId], language),
+                CorrectAnswers(question, vocabularyByTopic[question.TopicId], language),
+                ExampleFor(question, vocabularyByTopic[question.TopicId]),
+                ExplanationFor(question)))
             .ToList();
     }
 
@@ -45,6 +48,16 @@ public sealed class TestService(FluffyDbContext db)
             .Where(question => question.IsActive && question.Topic!.IsActive)
             .Select(question => question.Id)
             .ToListAsync();
+        if (request.QuestionIds is { Count: > 0 })
+        {
+            var requested = request.QuestionIds.Distinct().ToList();
+            if (requested.Count != request.QuestionIds.Count || requested.Any(id => !allowedQuestionIds.Contains(id)))
+            {
+                return null;
+            }
+
+            allowedQuestionIds = requested;
+        }
 
         if (allowedQuestionIds.Count == 0)
         {
@@ -58,23 +71,64 @@ public sealed class TestService(FluffyDbContext db)
             return null;
         }
 
-        var options = await db.TestAnswers.AsNoTracking()
-            .Where(answer => allowedQuestionIds.Contains(answer.QuestionId)).ToListAsync();
-        if (request.Answers.Any(answer => !options.Any(option => option.QuestionId == answer.QuestionId && option.Id == answer.AnswerId))
-            || allowedQuestionIds.Any(id => options.Count(answer => answer.QuestionId == id && answer.IsCorrect) != 1))
+        var questions = await db.TestQuestions
+            .Include(question => question.Topic!).ThenInclude(topic => topic.Chapter)
+            .Include(question => question.Answers)
+            .Where(question => allowedQuestionIds.Contains(question.Id))
+            .ToListAsync();
+        var options = questions.SelectMany(question => question.Answers).ToList();
+        if (allowedQuestionIds.Any(id => options.Count(answer => answer.QuestionId == id && answer.IsCorrect) < 1))
         {
             return null;
         }
-        var submittedAnswers = request.Answers.ToDictionary(answer => answer.QuestionId, answer => answer.AnswerId);
+        var submittedAnswers = request.Answers.ToDictionary(answer => answer.QuestionId);
+        var vocabulary = await db.Vocabulary.AsNoTracking().Where(word => questions.Select(question => question.TopicId).Contains(word.TopicId)).ToListAsync();
+        var vocabularyByTopic = vocabulary.ToLookup(word => word.TopicId);
+        var scoredAnswers = new List<UserAnswer>();
+        var mistakes = new List<TestMistakeDto>();
+        var score = 0;
 
-        var correctAnswers = await db.TestAnswers
-            .AsNoTracking()
-            .Where(answer => answer.IsCorrect && allowedQuestionIds.Contains(answer.QuestionId))
-            .ToDictionaryAsync(answer => answer.QuestionId, answer => answer.Id);
+        foreach (var question in questions.OrderBy(question => allowedQuestionIds.IndexOf(question.Id)))
+        {
+            var submission = submittedAnswers[question.Id];
+            if (submission.AnswerId.HasValue && !options.Any(option => option.QuestionId == question.Id && option.Id == submission.AnswerId.Value))
+            {
+                return null;
+            }
 
-        var score = correctAnswers.Count(correct =>
-            submittedAnswers.TryGetValue(correct.Key, out var selectedAnswerId)
-            && selectedAnswerId == correct.Value);
+            var correctTexts = CorrectAnswers(question, vocabularyByTopic[question.TopicId], null);
+            var correctAnswerText = correctTexts.FirstOrDefault() ?? string.Empty;
+            var selectedOption = submission.AnswerId.HasValue ? options.SingleOrDefault(option => option.Id == submission.AnswerId.Value) : null;
+            var userAnswerText = selectedOption?.AnswerText ?? submission.AnswerText?.Trim() ?? string.Empty;
+            var isCorrect = selectedOption is not null
+                ? selectedOption.IsCorrect
+                : correctTexts.Any(correct => NormalizeAnswer(correct) == NormalizeAnswer(userAnswerText));
+            if (isCorrect) score++;
+
+            scoredAnswers.Add(new UserAnswer
+            {
+                QuestionId = question.Id,
+                AnswerId = submission.AnswerId,
+                AnswerText = userAnswerText,
+                IsCorrect = isCorrect,
+                CorrectAnswerText = correctAnswerText,
+                Explanation = ExplanationFor(question)
+            });
+
+            if (!isCorrect)
+            {
+                mistakes.Add(new TestMistakeDto(
+                    question.Id,
+                    question.TopicId,
+                    TopicNaming.DisplayTitle(question.Topic!.Title, question.Topic.Chapter!.Title),
+                    question.QuestionText,
+                    question.QuestionType,
+                    userAnswerText,
+                    correctAnswerText,
+                    ExampleFor(question, vocabularyByTopic[question.TopicId]),
+                    ExplanationFor(question)));
+            }
+        }
 
         var total = allowedQuestionIds.Count;
         var percentage = total == 0 ? 0 : Math.Round((decimal)score / total * 100, 2);
@@ -88,13 +142,18 @@ public sealed class TestService(FluffyDbContext db)
             Score = score,
             TotalQuestions = total,
             Percentage = percentage,
-            CompletedAt = DateTime.UtcNow
+            CompletedAt = DateTime.UtcNow,
+            ParentResultId = request.ParentResultId
         };
 
         db.TestResults.Add(result);
+        foreach (var answer in scoredAnswers)
+        {
+            result.UserAnswers.Add(answer);
+        }
         await db.SaveChangesAsync();
 
-        return ToDto(result);
+        return ToDto(result, mistakes);
     }
 
     public async Task<TestResultDto> CreateResultAsync(CreateTestResultDto request)
@@ -114,7 +173,7 @@ public sealed class TestService(FluffyDbContext db)
 
         db.TestResults.Add(result);
         await db.SaveChangesAsync();
-        return ToDto(result);
+        return ToDto(result, []);
     }
 
     public async Task<IReadOnlyList<TestResultDto>> GetResultsByNameAsync(string name)
@@ -132,7 +191,9 @@ public sealed class TestService(FluffyDbContext db)
                 result.Score,
                 result.TotalQuestions,
                 result.Percentage,
-                result.CompletedAt))
+                result.CompletedAt,
+                result.ParentResultId,
+                Array.Empty<TestMistakeDto>()))
             .ToListAsync();
     }
 
@@ -173,7 +234,50 @@ public sealed class TestService(FluffyDbContext db)
         return "All topics";
     }
 
-    private static TestResultDto ToDto(TestResult result)
+    private static IReadOnlyList<string> CorrectAnswers(TestQuestion question, IEnumerable<Vocabulary> vocabulary, string? language)
+    {
+        if (question.QuestionText.StartsWith(TranslationChoices.QuestionPrefix, StringComparison.Ordinal))
+        {
+            var wordText = question.QuestionText[TranslationChoices.QuestionPrefix.Length..];
+            var word = vocabulary.FirstOrDefault(word => word.TopicId == question.TopicId && word.Word == wordText);
+            if (word is not null)
+            {
+                return SplitAnswers(TranslationChoices.TranslationFor(word, language));
+            }
+        }
+
+        return question.Answers.Where(answer => answer.IsCorrect).SelectMany(answer => SplitAnswers(answer.AnswerText)).ToList();
+    }
+
+    private static IReadOnlyList<string> SplitAnswers(string text)
+    {
+        return text.Split([',', ';', '/'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    private static string? ExampleFor(TestQuestion question, IEnumerable<Vocabulary> vocabulary)
+    {
+        if (question.QuestionText.StartsWith(TranslationChoices.QuestionPrefix, StringComparison.Ordinal))
+        {
+            var wordText = question.QuestionText[TranslationChoices.QuestionPrefix.Length..];
+            return vocabulary.FirstOrDefault(word => word.TopicId == question.TopicId && word.Word == wordText)?.ExampleSentence;
+        }
+
+        return null;
+    }
+
+    private static string? ExplanationFor(TestQuestion question)
+    {
+        return question.QuestionType.Contains("Blank", StringComparison.OrdinalIgnoreCase)
+            ? "Use the preposition or word that completes the sentence naturally."
+            : null;
+    }
+
+    private static string NormalizeAnswer(string answer)
+    {
+        return string.Join(' ', answer.Trim().ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static TestResultDto ToDto(TestResult result, IReadOnlyList<TestMistakeDto> mistakes)
     {
         return new TestResultDto(
             result.Id,
@@ -183,6 +287,8 @@ public sealed class TestService(FluffyDbContext db)
             result.Score,
             result.TotalQuestions,
             result.Percentage,
-            result.CompletedAt);
+            result.CompletedAt,
+            result.ParentResultId,
+            mistakes);
     }
 }

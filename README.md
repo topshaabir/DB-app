@@ -199,3 +199,9 @@ npm run build
 - Add admin screens for chapters, topics, vocabulary, and questions.
 - Add richer exercise types.
 - Add automated backend tests and frontend component tests.
+
+## Cloudflare Deployment
+
+For the combined Workers + D1 deployment on a `workers.dev` domain, see
+[cloudflare/README.md](cloudflare/README.md). This deployment serves the API directly
+from Workers and does not call Render.

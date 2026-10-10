@@ -1,0 +1,18 @@
+{
+  "name": "fluffy-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "dev": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "test": "node --experimental-sqlite --test tests/*.test.mjs",
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote",
+    "seed": "node scripts/seed.mjs",
+    "export:sqlserver": "node --env-file-if-exists=.env.local scripts/export-sqlserver.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

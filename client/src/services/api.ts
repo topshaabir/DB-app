@@ -64,14 +64,23 @@ export const api = {
   getChapters: () => request<ChapterSummary[]>('/chapters'),
   getChapter: (id: number) => request<ChapterSummary>(`/chapters/${id}`),
   getTopics: () => request<TopicSummary[]>('/topics'),
-  getTopic: (id: number) => request<TopicDetail>(`/topics/${id}`),
-  getVocabulary: (topicId: number) => request<Vocabulary[]>(`/topics/${topicId}/vocabulary`),
+  getTopic: (id: number, language?: string) => {
+    const params = language ? `?language=${encodeURIComponent(language)}` : '';
+    return request<TopicDetail>(`/topics/${id}${params}`);
+  },
+  getVocabulary: (topicId: number, language?: string) => {
+    const params = language ? `?language=${encodeURIComponent(language)}` : '';
+    return request<Vocabulary[]>(`/topics/${topicId}/vocabulary${params}`);
+  },
   getTopicQuestions: (topicId: number) => request<TestQuestion[]>(`/topics/${topicId}/questions`),
   getTestScopes: () => request<TestScope[]>('/tests/scopes'),
-  getTestQuestions: (scopeType: string, scopeId?: number | null) => {
+  getTestQuestions: (scopeType: string, scopeId?: number | null, language?: string) => {
     const params = new URLSearchParams({ scopeType });
     if (scopeId) {
       params.set('scopeId', String(scopeId));
+    }
+    if (language) {
+      params.set('language', language);
     }
     return request<TestQuestion[]>(`/tests/questions?${params.toString()}`);
   },

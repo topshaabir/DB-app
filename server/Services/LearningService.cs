@@ -74,8 +74,9 @@ public sealed class LearningService(FluffyDbContext db, TestService testService)
             .ToListAsync();
     }
 
-    public async Task<TopicDetailDto?> GetTopicAsync(int id)
+    public async Task<TopicDetailDto?> GetTopicAsync(int id, string? language = null)
     {
+        var normalizedLanguage = NormalizeLanguage(language);
         return await db.Topics
             .AsNoTracking()
             .Where(topic => topic.Id == id && topic.IsActive)
@@ -93,15 +94,20 @@ public sealed class LearningService(FluffyDbContext db, TestService testService)
                         word.Id,
                         word.TopicId,
                         word.Word,
-                        word.Translation,
+                        PickTranslation(word.Translation, word.TranslationRu, word.TranslationKz, normalizedLanguage),
+                        word.TranslationRu,
+                        word.TranslationKz,
                         word.ExampleSentence,
+                        word.ExampleTranslation,
+                        word.Ipa,
                         word.PartOfSpeech))
                     .ToList()))
             .SingleOrDefaultAsync();
     }
 
-    public async Task<IReadOnlyList<VocabularyDto>> GetVocabularyAsync(int topicId)
+    public async Task<IReadOnlyList<VocabularyDto>> GetVocabularyAsync(int topicId, string? language = null)
     {
+        var normalizedLanguage = NormalizeLanguage(language);
         return await db.Vocabulary
             .AsNoTracking()
             .Where(word => word.TopicId == topicId && word.Topic!.IsActive)
@@ -110,8 +116,12 @@ public sealed class LearningService(FluffyDbContext db, TestService testService)
                 word.Id,
                 word.TopicId,
                 word.Word,
-                word.Translation,
+                PickTranslation(word.Translation, word.TranslationRu, word.TranslationKz, normalizedLanguage),
+                word.TranslationRu,
+                word.TranslationKz,
                 word.ExampleSentence,
+                word.ExampleTranslation,
+                word.Ipa,
                 word.PartOfSpeech))
             .ToListAsync();
     }
@@ -143,5 +153,25 @@ public sealed class LearningService(FluffyDbContext db, TestService testService)
         scopes.AddRange(chapters);
         scopes.AddRange(topics);
         return scopes;
+    }
+
+    private static string NormalizeLanguage(string? language)
+    {
+        return language?.Trim().ToLowerInvariant() switch
+        {
+            "ru" => "ru",
+            "kz" or "kk" => "kz",
+            _ => "en"
+        };
+    }
+
+    private static string PickTranslation(string fallback, string? ru, string? kz, string language)
+    {
+        return language switch
+        {
+            "ru" when !string.IsNullOrWhiteSpace(ru) => ru,
+            "kz" when !string.IsNullOrWhiteSpace(kz) => kz,
+            _ => fallback
+        };
     }
 }

@@ -1,12 +1,16 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { ProfileCard } from '../components/ProfileCard';
 import { StateMessage } from '../components/StateMessage';
 import { LoadingState } from '../components/LoadingState';
 import { api } from '../services/api';
+import { loadMistakeSets, stashRetryMistakes } from '../services/mistakes';
+import { usePreferences } from '../services/preferences';
 import type { ProfileStats } from '../types/api';
 
 export function ProfilePage() {
+  const { t } = usePreferences();
   const [name, setName] = useState('');
   const [profile, setProfile] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -15,7 +19,7 @@ export function ProfilePage() {
   async function loadProfile() {
     setError(null);
     if (!name.trim()) {
-      setError('Enter a name to view profile statistics.');
+      setError(t('profileNameRequired'));
       return;
     }
 
@@ -29,49 +33,76 @@ export function ProfilePage() {
     }
   }
 
+  const mistakeSets = loadMistakeSets(profile?.userName ?? name);
+
   return (
     <div className="page-stack">
       <header className="page-header">
         <div>
           <span className="eyebrow">Your progress</span>
-          <h1>Profile</h1>
-          <p>Look up saved test statistics by name. Authentication can be added later without changing this flow.</p>
+          <h1>{t('profile')}</h1>
+          <p>{t('profileHint')}</p>
         </div>
       </header>
 
       <section className="form-panel">
         <label className="field">
           <span>User name</span>
-          <input value={name} onChange={event => setName(event.target.value)} placeholder="Name used in tests" />
+          <input value={name} onChange={event => setName(event.target.value)} placeholder={t('profilePlaceholder')} />
         </label>
         <Button type="button" onClick={loadProfile} disabled={loading}>
-          {loading ? 'Loading...' : 'View profile'}
+          {loading ? t('loading') : t('viewProfile')}
         </Button>
       </section>
 
       {loading ? <LoadingState /> : null}
-      {error ? <StateMessage title="Profile message" message={error} /> : null}
+      {error ? <StateMessage title={t('profileMessage')} message={error} /> : null}
       {profile ? (
         <>
           <ProfileCard profile={profile} />
           <section className="content-section">
             <div className="section-heading compact">
               <div>
-                <span className="eyebrow">Recent</span>
-                <h2>Saved results</h2>
+                <span className="eyebrow">{t('recent')}</span>
+                <h2>{t('savedResults')}</h2>
               </div>
             </div>
             <div className="results-list">
               {profile.recentResults.length === 0 ? (
-                <StateMessage title="No test results yet" message="Complete a test to fill this profile." />
+                <StateMessage title={t('noResults')} message={t('completeTest')} />
               ) : (
                 profile.recentResults.map(result => (
                   <article className="result-row" key={result.id}>
                     <div>
-                      <strong>{result.scopeLabel ?? 'Selected test'}</strong>
+                      <strong>{result.scopeLabel ?? t('selectedTest')}</strong>
                       <span>{new Date(result.completedAt).toLocaleDateString()}</span>
                     </div>
                     <b>{result.percentage}%</b>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+          <section className="content-section">
+            <div className="section-heading compact">
+              <div>
+                <span className="eyebrow">{t('mistakes')}</span>
+                <h2>{t('savedMistakes')}</h2>
+              </div>
+            </div>
+            <div className="results-list">
+              {mistakeSets.length === 0 ? (
+                <StateMessage title={t('noSavedMistakes')} />
+              ) : (
+                mistakeSets.slice(0, 6).map(set => (
+                  <article className="result-row" key={set.id}>
+                    <div>
+                      <strong>{set.mistakes.length} {t('incorrectAnswers')}</strong>
+                      <span>{new Date(set.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <Link className="button primary inline-button" to="/test" onClick={() => stashRetryMistakes(set)}>
+                      {t('retryLater')}
+                    </Link>
                   </article>
                 ))
               )}

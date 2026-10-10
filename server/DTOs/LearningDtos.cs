@@ -14,10 +14,29 @@ public sealed record TopicDetailDto(
     int OrderIndex,
     IReadOnlyList<VocabularyDto> Vocabulary);
 
-public sealed record VocabularyDto(int Id, int TopicId, string Word, string Translation, string ExampleSentence, string? PartOfSpeech);
+public sealed record VocabularyDto(
+    int Id,
+    int TopicId,
+    string Word,
+    string Translation,
+    string? TranslationRu,
+    string? TranslationKz,
+    string ExampleSentence,
+    string? ExampleTranslation,
+    string? Ipa,
+    string? PartOfSpeech);
 
 public sealed record AnswerOptionDto(int Id, string AnswerText);
 
-public sealed record TestQuestionDto(int Id, int TopicId, string TopicTitle, string QuestionText, string QuestionType, IReadOnlyList<AnswerOptionDto> Answers);
+public sealed record TestQuestionDto(
+    int Id,
+    int TopicId,
+    string TopicTitle,
+    string QuestionText,
+    string QuestionType,
+    IReadOnlyList<AnswerOptionDto> Answers,
+    IReadOnlyList<string> CorrectAnswers,
+    string? ExampleSentence,
+    string? Explanation);
 
 public sealed record TestScopeDto(string Type, int? Id, string Label);

@@ -16,9 +16,9 @@ public sealed class TestsController(LearningService learningService, TestService
     }
 
     [HttpGet("questions")]
-    public async Task<IActionResult> GetQuestions([FromQuery] string scopeType = "all", [FromQuery] int? scopeId = null)
+    public async Task<IActionResult> GetQuestions([FromQuery] string scopeType = "all", [FromQuery] int? scopeId = null, [FromQuery] string? language = null)
     {
-        var questions = await testService.GetQuestionsAsync(scopeType, scopeId);
+        var questions = await testService.GetQuestionsAsync(scopeType, scopeId, language);
         return Ok(questions);
     }
 

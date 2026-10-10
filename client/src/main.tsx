@@ -7,6 +7,7 @@ import { TopicDetailPage } from './pages/TopicDetailPage';
 import { TestPage } from './pages/TestPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
+import { PreferencesProvider } from './services/preferences';
 import './styles/global.css';
 
 const router = createBrowserRouter([
@@ -26,6 +27,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <PreferencesProvider>
+      <RouterProvider router={router} />
+    </PreferencesProvider>
   </React.StrictMode>
 );

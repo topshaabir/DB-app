@@ -21,7 +21,11 @@ export type Vocabulary = {
   topicId: number;
   word: string;
   translation: string;
+  translationRu?: string | null;
+  translationKz?: string | null;
   exampleSentence: string;
+  exampleTranslation?: string | null;
+  ipa?: string | null;
   partOfSpeech?: string | null;
 };
 
@@ -34,12 +38,27 @@ export type AnswerOption = {
   answerText: string;
 };
 
+export type TestMistake = {
+  questionId: number;
+  topicId: number;
+  topicTitle: string;
+  questionText: string;
+  questionType: string;
+  userAnswer: string;
+  correctAnswer: string;
+  exampleSentence?: string | null;
+  explanation?: string | null;
+};
+
 export type TestQuestion = {
   id: number;
   topicId: number;
   topicTitle: string;
   questionText: string;
   questionType: string;
+  correctAnswers?: string[];
+  exampleSentence?: string | null;
+  explanation?: string | null;
   answers: AnswerOption[];
 };
 
@@ -58,6 +77,8 @@ export type TestResult = {
   totalQuestions: number;
   percentage: number;
   completedAt: string;
+  mistakes?: TestMistake[];
+  parentResultId?: string | null;
 };
 
 export type ProfileStats = {
@@ -74,9 +95,12 @@ export type SubmitTestRequest = {
   userName: string;
   scopeType: string;
   scopeId?: number | null;
+  questionIds?: number[];
+  parentResultId?: string | null;
   answers: Array<{
     questionId: number;
-    answerId: number;
+    answerId?: number | null;
+    answerText?: string | null;
   }>;
 };
 

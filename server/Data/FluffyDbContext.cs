@@ -11,6 +11,7 @@ public sealed class FluffyDbContext(DbContextOptions<FluffyDbContext> options) :
     public DbSet<TestQuestion> TestQuestions => Set<TestQuestion>();
     public DbSet<TestAnswer> TestAnswers => Set<TestAnswer>();
     public DbSet<TestResult> TestResults => Set<TestResult>();
+    public DbSet<UserAnswer> UserAnswers => Set<UserAnswer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,7 +40,11 @@ public sealed class FluffyDbContext(DbContextOptions<FluffyDbContext> options) :
         {
             entity.Property(x => x.Word).HasMaxLength(120).IsRequired();
             entity.Property(x => x.Translation).HasMaxLength(160).IsRequired();
+            entity.Property(x => x.TranslationRu).HasMaxLength(220);
+            entity.Property(x => x.TranslationKz).HasMaxLength(220);
             entity.Property(x => x.ExampleSentence).HasMaxLength(600).IsRequired();
+            entity.Property(x => x.ExampleTranslation).HasMaxLength(600);
+            entity.Property(x => x.Ipa).HasMaxLength(120);
             entity.Property(x => x.PartOfSpeech).HasMaxLength(80);
             entity.HasOne(x => x.Topic)
                 .WithMany(x => x.Vocabulary)
@@ -70,12 +75,34 @@ public sealed class FluffyDbContext(DbContextOptions<FluffyDbContext> options) :
         {
             entity.Property(x => x.UserName).HasMaxLength(120).IsRequired();
             entity.Property(x => x.ScopeLabel).HasMaxLength(220);
+            entity.Property(x => x.ParentResultId).HasMaxLength(80);
             entity.Property(x => x.Percentage).HasPrecision(5, 2);
             entity.HasIndex(x => x.UserName);
             entity.HasOne(x => x.Topic)
                 .WithMany(x => x.TestResults)
                 .HasForeignKey(x => x.TopicId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<UserAnswer>(entity =>
+        {
+            entity.Property(x => x.AnswerText).HasMaxLength(600);
+            entity.Property(x => x.CorrectAnswerText).HasMaxLength(600).IsRequired();
+            entity.Property(x => x.Explanation).HasMaxLength(1000);
+            entity.HasIndex(x => x.TestResultId);
+            entity.HasIndex(x => x.QuestionId);
+            entity.HasOne(x => x.TestResult)
+                .WithMany(x => x.UserAnswers)
+                .HasForeignKey(x => x.TestResultId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.Question)
+                .WithMany()
+                .HasForeignKey(x => x.QuestionId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(x => x.Answer)
+                .WithMany()
+                .HasForeignKey(x => x.AnswerId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
     }

@@ -1,14 +1,17 @@
 import { BookOpen, ClipboardCheck, Trophy, UserRound } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-
-const navItems = [
-  { to: '/topics', label: 'Topics', icon: BookOpen },
-  { to: '/test', label: 'Test', icon: ClipboardCheck },
-  { to: '/profile', label: 'Profile', icon: UserRound },
-  { to: '/leaderboard', label: 'Leaderboard', icon: Trophy }
-];
+import { AppControls } from '../components/AppControls';
+import { usePreferences } from '../services/preferences';
 
 export function AppLayout() {
+  const { t } = usePreferences();
+  const navItems = [
+    { to: '/topics', label: t('topics'), icon: BookOpen },
+    { to: '/test', label: t('test'), icon: ClipboardCheck },
+    { to: '/profile', label: t('profile'), icon: UserRound },
+    { to: '/leaderboard', label: t('leaderboard'), icon: Trophy }
+  ];
+
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="Main navigation">
@@ -16,7 +19,7 @@ export function AppLayout() {
           <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
           <div>
             <strong>Fluffy</strong>
-            <span>English learning</span>
+            <span>{t('appSubtitle')}</span>
           </div>
         </Link>
         <nav className="nav-list">
@@ -30,10 +33,13 @@ export function AppLayout() {
       </aside>
 
       <main className="main-content">
-        <Link to="/topics" className="brand mobile-brand" aria-label="Fluffy home">
-          <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
-          <strong>Fluffy</strong>
-        </Link>
+        <div className="topbar">
+          <Link to="/topics" className="brand mobile-brand" aria-label="Fluffy home">
+            <img className="brand-mark" src="/images/fluffy-loading.png" alt="" width={52} height={52} />
+            <strong>Fluffy</strong>
+          </Link>
+          <AppControls />
+        </div>
         <Outlet />
       </main>
 

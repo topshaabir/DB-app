@@ -22,7 +22,9 @@ public sealed class ProfileService(FluffyDbContext db)
                 result.Score,
                 result.TotalQuestions,
                 result.Percentage,
-                result.CompletedAt))
+                result.CompletedAt,
+                result.ParentResultId,
+                Array.Empty<TestMistakeDto>()))
             .ToListAsync();
 
         var learnedTopicCount = results

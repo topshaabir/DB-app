@@ -15,22 +15,22 @@ public sealed class TopicsController(LearningService learningService) : Controll
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetTopic(int id)
+    public async Task<IActionResult> GetTopic(int id, [FromQuery] string? language = null)
     {
-        var topic = await learningService.GetTopicAsync(id);
+        var topic = await learningService.GetTopicAsync(id, language);
         return topic is null ? NotFound() : Ok(topic);
     }
 
     [HttpGet("{id:int}/vocabulary")]
-    public async Task<IActionResult> GetVocabulary(int id)
+    public async Task<IActionResult> GetVocabulary(int id, [FromQuery] string? language = null)
     {
-        var topic = await learningService.GetTopicAsync(id);
+        var topic = await learningService.GetTopicAsync(id, language);
         if (topic is null)
         {
             return NotFound();
         }
 
-        var vocabulary = await learningService.GetVocabularyAsync(id);
+        var vocabulary = await learningService.GetVocabularyAsync(id, language);
         return Ok(vocabulary);
     }
 

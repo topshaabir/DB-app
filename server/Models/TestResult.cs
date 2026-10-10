@@ -10,6 +10,8 @@ public sealed class TestResult
     public int TotalQuestions { get; set; }
     public decimal Percentage { get; set; }
     public DateTime CompletedAt { get; set; }
+    public string? ParentResultId { get; set; }
 
     public Topic? Topic { get; set; }
+    public ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();
 }
