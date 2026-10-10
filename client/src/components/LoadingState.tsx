@@ -1,3 +1,4 @@
+import { usePreferences } from '../services/preferences';
 import { Info, LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -7,7 +8,8 @@ type LoadingStateProps = {
   fullScreen?: boolean;
 };
 
-export function LoadingState({ message = 'Подождите, сервер загружается', fullScreen = true }: LoadingStateProps) {
+export function LoadingState({ message, fullScreen = true }: LoadingStateProps) {
+  const { t } = usePreferences();
   const [showDelayNotice, setShowDelayNotice] = useState(false);
 
   useEffect(() => {
@@ -19,8 +21,8 @@ export function LoadingState({ message = 'Подождите, сервер за�
     <div className="server-delay-notice" role="status" aria-live="polite">
       <Info size={22} aria-hidden="true" />
       <div>
-        <strong>Серверден жауап күтіп жатырмыз</strong>
-        <p>Тегін сервер белсенді болмаған кезде ұйқы режиміне өтуі мүмкін. Қайта қосылуына 50 секунд немесе одан көп уақыт кетуі мүмкін. Күте тұрыңыз.</p>
+        <strong>{t('waitingServer')}</strong>
+        <p>{t('delayNotice')}</p>
       </div>
     </div>
   ) : null;
@@ -44,7 +46,7 @@ export function LoadingState({ message = 'Подождите, сервер за�
         <div className="loading-screen-content">
           <img className="loading-mascot" src="/images/fluffy-loading.png" alt="" width={240} height={240} />
           <strong className="loading-screen-brand">Fluffy</strong>
-          <h1>{message}</h1>
+          <h1>{message ?? t('loadingServer')}</h1>
           <div className="loading-screen-track" aria-hidden="true">
             <div className="loading-screen-progress" />
           </div>
@@ -59,7 +61,7 @@ export function LoadingState({ message = 'Подождите, сервер за�
     <div>
       <div className="loading-state" role="status" aria-live="polite">
         <LoaderCircle className="loading-spinner" size={24} aria-hidden="true" />
-        <span>{message}</span>
+        <span>{message ?? t('loadingServer')}</span>
       </div>
       {delayNotice}
     </div>

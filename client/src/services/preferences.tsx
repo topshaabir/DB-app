@@ -249,7 +249,62 @@ const dictionaries = {
   }
 } as const;
 
-type TranslationKey = keyof typeof dictionaries.en;
+const additionalTranslations = {
+  studiedTopics: ['Studied topics', 'Изученные темы', 'Өтілген тақырыптар'],
+  topicsDescription: ['Review vocabulary and examples from your learning chapters.', 'Повторяйте слова и примеры из изученных разделов.', 'Өтілген бөлімдердегі сөздер мен мысалдарды қайталаңыз.'],
+  topicsError: ['Could not load topics', 'Не удалось загрузить темы', 'Тақырыптарды жүктеу мүмкін болмады'],
+  chapter: ['Chapter', 'Раздел', 'Бөлім'],
+  comingSoon: ['Coming soon', 'Скоро', 'Жақында'],
+  community: ['Fluffy community', 'Сообщество Fluffy', 'Fluffy қауымдастығы'],
+  refreshLeaderboard: ['Refresh leaderboard', 'Обновить рейтинг', 'Рейтингті жаңарту'],
+  rankingPeriod: ['Ranking period', 'Период рейтинга', 'Рейтинг кезеңі'],
+  allTime: ['All time', 'За всё время', 'Барлық уақыт'],
+  lastWeek: ['Last 7 days', 'Последние 7 дней', 'Соңғы 7 күн'],
+  filterTopic: ['Filter by topic', 'Фильтр по теме', 'Тақырып бойынша сүзу'],
+  allTests: ['All tests', 'Все тесты', 'Барлық тесттер'],
+  filtersUnavailable: ['Topic filters are unavailable', 'Фильтры тем недоступны', 'Тақырып сүзгілері қолжетімсіз'],
+  leaderboardError: ['Could not load leaderboard', 'Не удалось загрузить рейтинг', 'Рейтингті жүктеу мүмкін болмады'],
+  learners: ['learners', 'участников', 'қатысушы'],
+  completedTests: ['Completed tests', 'Пройденные тесты', 'Аяқталған тесттер'],
+  takeTest: ['Take a test', 'Пройти тест', 'Тест тапсыру'],
+  points: ['Points', 'Баллы', 'Ұпай'],
+  rankings: ['Rankings', 'Рейтинг', 'Рейтинг'],
+  topHundred: ['Top 100', 'Топ-100', 'Үздік 100'],
+  searchLearners: ['Search learners', 'Поиск участников', 'Қатысушыларды іздеу'],
+  noLearners: ['No matching learners', 'Участники не найдены', 'Қатысушылар табылмады'],
+  rank: ['Rank', 'Место', 'Орын'],
+  learner: ['Learner', 'Участник', 'Қатысушы'],
+  tests: ['Tests', 'Тесты', 'Тесттер'],
+  bestScore: ['Best score', 'Лучший результат', 'Ең жақсы нәтиже'],
+  averageScore: ['Average score', 'Средний балл', 'Орташа ұпай'],
+  averagePercent: ['Average percent', 'Средний процент', 'Орташа пайыз'],
+  learnedTopics: ['Learned topics', 'Изученные темы', 'Өтілген тақырыптар'],
+  profileError: ['Could not load profile', 'Не удалось загрузить профиль', 'Профильді жүктеу мүмкін болмады'],
+  savedResult: ['Saved result', 'Сохранённый результат', 'Сақталған нәтиже'],
+  scope: ['Scope', 'Тема теста', 'Тест тақырыбы'],
+  score: ['Score', 'Результат', 'Нәтиже'],
+  loadingServer: ['Please wait, loading', 'Подождите, идёт загрузка', 'Күте тұрыңыз, жүктелуде'],
+  waitingServer: ['Waiting for the server', 'Ожидаем ответ сервера', 'Серверден жауап күтіп жатырмыз'],
+  delayNotice: ['The server is taking longer to respond. Please wait.', 'Ответ сервера занимает больше времени. Подождите.', 'Сервер жауабы кешігіп жатыр. Күте тұрыңыз.'],
+  scopesError: ['Could not load test topics', 'Не удалось загрузить темы теста', 'Тест тақырыптарын жүктеу мүмкін болмады'],
+  mainNavigation: ['Main navigation', 'Основная навигация', 'Негізгі навигация'],
+  mobileNavigation: ['Mobile navigation', 'Мобильная навигация', 'Мобильді навигация'],
+  home: ['Fluffy home', 'Главная Fluffy', 'Fluffy басты беті'],
+  preferences: ['Application preferences', 'Настройки приложения', 'Қолданба баптаулары']
+} as const;
+
+type TranslationKey = keyof typeof dictionaries.en | keyof typeof additionalTranslations;
+
+function translate(language: Language, key: TranslationKey): string {
+  if (key in additionalTranslations) {
+    return additionalTranslations[key as keyof typeof additionalTranslations][{ en: 0, ru: 1, kz: 2 }[language]];
+  }
+  return dictionaries[language][key as keyof typeof dictionaries.en];
+}
+
+export function languageLocale(language: Language) {
+  return language === 'kz' ? 'kk-KZ' : language === 'ru' ? 'ru-RU' : 'en-US';
+}
 
 type PreferencesContextValue = {
   language: Language;
@@ -291,7 +346,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     setLanguage: setLanguageState,
     theme,
     setTheme: setThemeState,
-    t: key => dictionaries[language][key] ?? dictionaries.en[key]
+    t: key => translate(language, key)
   }), [language, theme]);
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

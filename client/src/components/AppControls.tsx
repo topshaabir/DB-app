@@ -6,7 +6,7 @@ export function AppControls() {
   const nextTheme = theme === 'dark' ? 'light' : 'dark';
 
   return (
-    <div className="app-controls" aria-label="Application preferences">
+    <div className="app-controls" aria-label={t('preferences')}>
       <label className="language-select">
         <span className="sr-only">{t('language')}</span>
         <select value={language} onChange={event => setLanguage(event.target.value as typeof language)}>

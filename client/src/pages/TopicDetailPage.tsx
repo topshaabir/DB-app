@@ -5,7 +5,7 @@ import { LoadingState } from '../components/LoadingState';
 import { useAsync } from '../hooks/useAsync';
 import { api } from '../services/api';
 import { usePreferences } from '../services/preferences';
-import { topicTitle } from '../services/topicTitle';
+import { learningDescription, learningTitle, topicTitle } from '../services/topicTitle';
 
 export function TopicDetailPage() {
   const { id } = useParams();
@@ -47,16 +47,16 @@ export function TopicDetailPage() {
           <BookOpen size={32} />
         </div>
         <div>
-          {topic.title.toLowerCase() !== 'vocabulary' ? <span className="eyebrow">{topic.chapterTitle}</span> : null}
-          <h1>{topicTitle(topic)}</h1>
-          <p>{topic.description}</p>
+          {topic.title.toLowerCase() !== 'vocabulary' ? <span className="eyebrow">{learningTitle(topic.chapterTitle, language)}</span> : null}
+          <h1>{topicTitle(topic, language)}</h1>
+          <p>{learningDescription(topic.description, language)}</p>
         </div>
       </header>
 
       <section className="content-section">
         <div className="section-heading compact">
           <div>
-            <span className="eyebrow">Vocabulary</span>
+            <span className="eyebrow">{t('vocabulary')}</span>
             <h2>{t('wordsForTopic')}</h2>
           </div>
         </div>

@@ -4,13 +4,14 @@ import { Button } from '../components/Button';
 import { ProfileCard } from '../components/ProfileCard';
 import { StateMessage } from '../components/StateMessage';
 import { LoadingState } from '../components/LoadingState';
+import { learningTitle } from '../services/topicTitle';
 import { api } from '../services/api';
 import { loadMistakeSets, stashRetryMistakes } from '../services/mistakes';
-import { usePreferences } from '../services/preferences';
+import { languageLocale, usePreferences } from '../services/preferences';
 import type { ProfileStats } from '../types/api';
 
 export function ProfilePage() {
-  const { t } = usePreferences();
+  const { t, language } = usePreferences();
   const [name, setName] = useState('');
   const [profile, setProfile] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,7 @@ export function ProfilePage() {
     try {
       setProfile(await api.getProfile(name));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load profile.');
+      setError(err instanceof Error ? err.message : t('profileError'));
     } finally {
       setLoading(false);
     }
@@ -39,7 +40,7 @@ export function ProfilePage() {
     <div className="page-stack">
       <header className="page-header">
         <div>
-          <span className="eyebrow">Your progress</span>
+          <span className="eyebrow">{t('yourProgress')}</span>
           <h1>{t('profile')}</h1>
           <p>{t('profileHint')}</p>
         </div>
@@ -47,7 +48,7 @@ export function ProfilePage() {
 
       <section className="form-panel">
         <label className="field">
-          <span>User name</span>
+          <span>{t('userName')}</span>
           <input value={name} onChange={event => setName(event.target.value)} placeholder={t('profilePlaceholder')} />
         </label>
         <Button type="button" onClick={loadProfile} disabled={loading}>
@@ -74,8 +75,8 @@ export function ProfilePage() {
                 profile.recentResults.map(result => (
                   <article className="result-row" key={result.id}>
                     <div>
-                      <strong>{result.scopeLabel ?? t('selectedTest')}</strong>
-                      <span>{new Date(result.completedAt).toLocaleDateString()}</span>
+                      <strong>{result.scopeLabel ? learningTitle(result.scopeLabel, language) : t('selectedTest')}</strong>
+                      <span>{new Date(result.completedAt).toLocaleDateString(languageLocale(language))}</span>
                     </div>
                     <b>{result.percentage}%</b>
                   </article>
@@ -98,7 +99,7 @@ export function ProfilePage() {
                   <article className="result-row" key={set.id}>
                     <div>
                       <strong>{set.mistakes.length} {t('incorrectAnswers')}</strong>
-                      <span>{new Date(set.createdAt).toLocaleDateString()}</span>
+                      <span>{new Date(set.createdAt).toLocaleDateString(languageLocale(language))}</span>
                     </div>
                     <Link className="button primary inline-button" to="/test" onClick={() => stashRetryMistakes(set)}>
                       {t('retryLater')}

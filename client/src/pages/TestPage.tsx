@@ -7,6 +7,7 @@ import { StateMessage } from '../components/StateMessage';
 import { useAsync } from '../hooks/useAsync';
 import { api } from '../services/api';
 import { saveMistakeSet, stashRetryMistakes, takeRetryMistakes, type StoredMistakeSet } from '../services/mistakes';
+import { learningTitle, questionPrompt } from '../services/topicTitle';
 import { usePreferences } from '../services/preferences';
 import type { TestQuestion, TestResult, TestScope } from '../types/api';
 
@@ -286,7 +287,7 @@ export function TestPage() {
             <Dropdown label={t('chooseTopic')} value={selectedScope} disabled={loading || loadingQuestions || submitting} onChange={event => setSelectedScope(event.target.value)}>
               {scopes?.map(scope => (
                 <option key={encodeScope(scope)} value={encodeScope(scope)}>
-                  {scope.type === 'all' ? t('allTopics') : scope.label}
+                  {scope.type === 'all' ? t('allTopics') : learningTitle(scope.label, language)}
                 </option>
               ))}
             </Dropdown>
@@ -309,7 +310,7 @@ export function TestPage() {
       ) : null}
 
       {loading || loadingQuestions ? <LoadingState /> : null}
-      {error ? <StateMessage title="Could not load scopes" message={error} /> : null}
+      {error ? <StateMessage title={t('scopesError')} message={error} /> : null}
       {flowError ? <StateMessage title={t('testMessage')} message={flowError} /> : null}
 
       {currentQuestion && !result ? (
@@ -328,8 +329,8 @@ export function TestPage() {
           </div>
 
           <article className="single-question-card" key={currentQuestion.id + currentQuestion.questionType}>
-            <div className="question-meta">{currentQuestion.topicTitle}</div>
-            <h1>{currentQuestion.questionText}</h1>
+            <div className="question-meta">{learningTitle(currentQuestion.topicTitle, language)}</div>
+            <h1>{questionPrompt(currentQuestion.questionText, language)}</h1>
             {isMultipleChoice(currentQuestion) ? (
               <div className="single-answer-list">
                 {currentQuestion.answers.map(answer => (
@@ -386,7 +387,7 @@ export function TestPage() {
               <h2>{t('mistakes')}</h2>
               {result.mistakes.map(mistake => (
                 <article className="mistake-card" key={mistake.questionId}>
-                  <strong>{mistake.questionText}</strong>
+                  <strong>{questionPrompt(mistake.questionText, language)}</strong>
                   <span>{t('yourAnswer')}: {mistake.userAnswer || '-'}</span>
                   <span>{t('correctAnswer')}: {mistake.correctAnswer}</span>
                   {mistake.exampleSentence ? <small>{t('example')}: {mistake.exampleSentence}</small> : null}

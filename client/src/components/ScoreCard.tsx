@@ -1,3 +1,4 @@
+import { usePreferences } from '../services/preferences';
 import type { TestResult } from '../types/api';
 
 type ScoreCardProps = {
@@ -5,19 +6,20 @@ type ScoreCardProps = {
 };
 
 export function ScoreCard({ result }: ScoreCardProps) {
+  const { t } = usePreferences();
   return (
     <section className="score-card">
-      <span className="eyebrow">Saved result</span>
+      <span className="eyebrow">{t('savedResult')}</span>
       <h2>{result.percentage}%</h2>
       <p>
-        {result.userName}, you answered {result.score} of {result.totalQuestions} questions correctly.
+        {result.userName}: {t('correctAnswers')} {result.score}/{result.totalQuestions}.
       </p>
       <div className="score-grid">
-        <span>Name</span>
+        <span>{t('userName')}</span>
         <strong>{result.userName}</strong>
-        <span>Scope</span>
-        <strong>{result.scopeLabel ?? 'Selected test'}</strong>
-        <span>Score</span>
+        <span>{t('scope')}</span>
+        <strong>{result.scopeLabel ?? t('selectedTest')}</strong>
+        <span>{t('score')}</span>
         <strong>
           {result.score}/{result.totalQuestions}
         </strong>
