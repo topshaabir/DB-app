@@ -17,6 +17,15 @@ const titles: Record<string, [string, string]> = {
 };
 
 export function learningTitle(title: string, language: Language): string {
+  if (language !== 'en' && title.includes(' - ')) {
+    return title.split(' - ').map(part => learningTitle(part, language)).join(' - ');
+  }
+  if (language !== 'en' && /^Chapter \d+$/.test(title)) {
+    return title.replace('Chapter', language === 'ru' ? 'Раздел' : 'Бөлім');
+  }
+  if (title === 'All topics' || title === 'All Topics') {
+    return { en: title, ru: 'Все темы', kz: 'Барлық тақырыптар' }[language];
+  }
   const translated = titles[title];
   return language === 'en' || !translated ? title : translated[language === 'ru' ? 0 : 1];
 }
